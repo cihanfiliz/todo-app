@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [filteredTodos, setFilteredTodos] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
 
   useEffect(() => {
     const fetchTodos = async () => {
       try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/todos?_limit=20");
+        const response = await fetch(
+          "https://jsonplaceholder.typicode.com/todos?_limit=20"
+        );
         if (!response.ok) {
           throw new Error("An error occurred when retrieving the data.");
         }
@@ -29,14 +32,41 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (activeFilter === 'all') {
+    if (activeFilter === "all") {
       setFilteredTodos(todos);
-    } else if (activeFilter === 'completed') {
-      setFilteredTodos(todos.filter(todo => todo.completed));
-    } else if (activeFilter === 'active') {
-      setFilteredTodos(todos.filter(todo => !todo.completed));
+    } else if (activeFilter === "completed") {
+      setFilteredTodos(todos.filter((todo) => todo.completed));
+    } else if (activeFilter === "active") {
+      setFilteredTodos(todos.filter((todo) => !todo.completed));
     }
   }, [activeFilter, todos]);
+
+  const handleAddTask = (e) => {
+    e.preventDefault(); //prevents form to reload the page
+    if (newTaskTitle.trim() === "") {
+      alert("Please enter a task.");
+      return;
+    }
+    const newTodo = {
+      id: Date.now(), //simple unique id method
+      title: newTaskTitle,
+      completed: false,
+    };
+    setTodos([newTodo, ...todos]);
+    setNewTaskTitle("");
+  };
+
+  const handleToggleComplete = (id) => {
+    const updateTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+    setTodos(updateTodos);
+  };
+
+  const handleDeleteTodo = (id) => {
+    const updateTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(updateTodos);
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans text-gray-800 p-4 sm:p-8">
@@ -45,35 +75,107 @@ function App() {
           <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-700">
             Things to do
           </h1>
-          <p className="text-center text-gray-500 mt-2">Fetch Data Via React Hooks</p>
+          <p className="text-center text-gray-500 mt-2">
+            Fetch Data Via React Hooks
+          </p>
         </header>
+
+        <form onSubmit={handleAddTask} className="flex mb-6">
+          <input
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="Add new task..."
+            className="flex-grow p-3 border-2 border-gray-200 rounded-l-md focus:outline-none focus:border-blue-500 transition-colors"
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-6 py-3 rounded-r-md font-semibold hover:bg-blue-600 transition-colors"
+          >
+            Add
+          </button>
+        </form>
+
         <div className="flex justify-center space-x-2 sm:space-x-4 mb-6">
           <button
-            onClick={() => setActiveFilter('all')}
-            lassName={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${activeFilter === 'all' ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-          >All</button>
+            onClick={() => setActiveFilter("all")}
+            lassName={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
+              activeFilter === "all"
+                ? "bg-blue-500 text-white shadow-md"
+                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            }`}
+          >
+            All
+          </button>
           <button
-            onClick={() => setActiveFilter('completed')}
-            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${activeFilter === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-          >Done</button>
+            onClick={() => setActiveFilter("completed")}
+            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
+              activeFilter === "completed"
+                ? "bg-green-500 text-white shadow-md"
+                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            }`}
+          >
+            Done
+          </button>
           <button
-            onClick={() => setActiveFilter('active')}
-            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${activeFilter === 'active' ? 'bg-yellow-500 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-          >to do</button>
+            onClick={() => setActiveFilter("active")}
+            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
+              activeFilter === "active"
+                ? "bg-yellow-500 text-white shadow-md"
+                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            }`}
+          >
+            to do
+          </button>
         </div>
         <main>
           {isLoading && <p className="text-center text-gray-500">Loading...</p>}
-          {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
+          {error && (
+            <p className="text-center text-red-500 font-semibold">{error}</p>
+          )}
           {!isLoading && !error && (
             <ul className="space-y-3">
-              {filteredTodos.map(todo => (
-                <li key={todo.id}
-                  className={`flex items-center p-4 rounded-lg transition-all duration-200 ${todo.completed ? 'bg-green-50 text-gray-500 line-through' : 'bg-blue-50'
-                    }`}>
-                  <span className={`flex-shrink-0 h-6 w-6 rounded-full mr-4 ${todo.completed ? 'bg-green-400' : 'bg-yellow-400'}`}></span>
-                  <span className="flex-grow">{todo.title}</span>
+              {filteredTodos.map((todo) => (
+                <li
+                  key={todo.id}
+                  className={`group flex items-center p-4 rounded-lg transition-all duration-200 ${
+                    todo.completed
+                      ? "bg-green-50 text-gray-500 line-through"
+                      : "bg-blue-50"
+                  }`}
+                >
+                  <div
+                    onClick={() => handleToggleComplete(todo.id)}
+                    className="flex items-center flex-grow cursor-pointer"
+                  >
+                    <span
+                      className={`flex-shrink-0 h-6 w-6 rounded-full mr-4 border-2 transition-all ${
+                        todo.completed
+                          ? "bg-green-400 border-green-400"
+                          : "border-gray-300"
+                      }`}
+                    ></span>
+                    <span
+                      className={`flex-grow ${
+                        todo.completed ? "line-through" : ""
+                      }`}
+                    >
+                      {todo.title}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTodo(todo.id)}
+                    className="ml-4 text-gray-400 hover:text-red-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    X
+                  </button>
                 </li>
               ))}
+              {filteredTodos.length === 0 && (
+                <p className="text-center text-gray-400 py-4">
+                  No task for this filter
+                </p>
+              )}
             </ul>
           )}
         </main>
