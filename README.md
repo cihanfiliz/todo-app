@@ -46,3 +46,4 @@ You don't have to ever use `eject`. The curated feature set is suitable for smal
 ## More
 
 The mock data is fetched from JSONPlaceholder API.
+TailwindCSS is used for styling.
