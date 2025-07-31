@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import TodoList from "./components/TodoList";
+import TodoForm from "./components/TodoForm";
+import FilterButtons from "./components/FilterButtons";
 
 function App() {
   const [todos, setTodos] = useState([]);
-  const [filteredTodos, setFilteredTodos] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +22,6 @@ function App() {
 
         const data = await response.json();
         setTodos(data);
-        setFilteredTodos(data);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -31,15 +32,11 @@ function App() {
     fetchTodos();
   }, []);
 
-  useEffect(() => {
-    if (activeFilter === "all") {
-      setFilteredTodos(todos);
-    } else if (activeFilter === "completed") {
-      setFilteredTodos(todos.filter((todo) => todo.completed));
-    } else if (activeFilter === "active") {
-      setFilteredTodos(todos.filter((todo) => !todo.completed));
-    }
-  }, [activeFilter, todos]);
+  const filteredTodos = todos.filter(todo => {
+    if(activeFilter === "completed") return todo.completed;
+    if(activeFilter === "active") return !todo.completed;
+    return true;
+  })
 
   const handleAddTask = (e) => {
     e.preventDefault(); //prevents form to reload the page
@@ -80,103 +77,28 @@ function App() {
           </p>
         </header>
 
-        <form onSubmit={handleAddTask} className="flex mb-6">
-          <input
-            type="text"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            placeholder="Add new task..."
-            className="flex-grow p-3 border-2 border-gray-200 rounded-l-md focus:outline-none focus:border-blue-500 transition-colors"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-6 py-3 rounded-r-md font-semibold hover:bg-blue-600 transition-colors"
-          >
-            Add
-          </button>
-        </form>
+        <TodoForm
+          newTaskTitle={newTaskTitle}
+          onNewTaskChange={(e) => setNewTaskTitle(e.target.value)}
+          onAddTask={handleAddTask}
+        />
 
-        <div className="flex justify-center space-x-2 sm:space-x-4 mb-6">
-          <button
-            onClick={() => setActiveFilter("all")}
-            lassName={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
-              activeFilter === "all"
-                ? "bg-blue-500 text-white shadow-md"
-                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setActiveFilter("completed")}
-            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
-              activeFilter === "completed"
-                ? "bg-green-500 text-white shadow-md"
-                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-            }`}
-          >
-            Done
-          </button>
-          <button
-            onClick={() => setActiveFilter("active")}
-            className={`px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
-              activeFilter === "active"
-                ? "bg-yellow-500 text-white shadow-md"
-                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-            }`}
-          >
-            to do
-          </button>
-        </div>
+        <FilterButtons
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+        />
+
         <main>
           {isLoading && <p className="text-center text-gray-500">Loading...</p>}
           {error && (
             <p className="text-center text-red-500 font-semibold">{error}</p>
           )}
           {!isLoading && !error && (
-            <ul className="space-y-3">
-              {filteredTodos.map((todo) => (
-                <li
-                  key={todo.id}
-                  className={`group flex items-center p-4 rounded-lg transition-all duration-200 ${
-                    todo.completed
-                      ? "bg-green-50 text-gray-500 line-through"
-                      : "bg-blue-50"
-                  }`}
-                >
-                  <div
-                    onClick={() => handleToggleComplete(todo.id)}
-                    className="flex items-center flex-grow cursor-pointer"
-                  >
-                    <span
-                      className={`flex-shrink-0 h-6 w-6 rounded-full mr-4 border-2 transition-all ${
-                        todo.completed
-                          ? "bg-green-400 border-green-400"
-                          : "border-gray-300"
-                      }`}
-                    ></span>
-                    <span
-                      className={`flex-grow ${
-                        todo.completed ? "line-through" : ""
-                      }`}
-                    >
-                      {todo.title}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    className="ml-4 text-gray-400 hover:text-red-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    X
-                  </button>
-                </li>
-              ))}
-              {filteredTodos.length === 0 && (
-                <p className="text-center text-gray-400 py-4">
-                  No task for this filter
-                </p>
-              )}
-            </ul>
+            <TodoList
+              todos={filteredTodos}
+              onToggleComplete={handleToggleComplete}
+              onDeleteTodo={handleDeleteTodo}
+            />
           )}
         </main>
       </div>
