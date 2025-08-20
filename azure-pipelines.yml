@@ -5,8 +5,13 @@ trigger:
 
 # Pipeline'ın çalışacağı sanal makineyi belirtir.
 # 'ubuntu-latest', en güncel Ubuntu sürümünü kullanır.
+# ESKİ HALİ:
+# pool:
+#  vmImage: 'ubuntu-latest'
+
+# YENİ HALİ:
 pool:
-  vmImage: 'ubuntu-latest'
+  name: Default # self-hosted agent pool
 
 # Pipeline'ın adımlarını (steps) tanımlar.
 steps:
