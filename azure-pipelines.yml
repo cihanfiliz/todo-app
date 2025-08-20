@@ -1,0 +1,36 @@
+# Bu pipeline'ın hangi olayda tetikleneceğini belirtir.
+# 'main' branch'ine yapılan her push'ta çalışacaktır.
+trigger:
+- main
+
+# Pipeline'ın çalışacağı sanal makineyi belirtir.
+# 'ubuntu-latest', en güncel Ubuntu sürümünü kullanır.
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Pipeline'ın adımlarını (steps) tanımlar.
+steps:
+# Adım 1: Node.js'in belirli bir sürümünü kurar.
+- task: NodeTool@0
+  inputs:
+    versionSpec: '22.x' # Projenize uygun Node.js sürümünü belirtin
+  displayName: 'Install Node.js'
+
+# Adım 2: 'npm install' komutunu çalıştırır.
+# Bu, package.json'daki tüm bağımlılıkları indirir.
+- script: npm install
+  displayName: 'npm install'
+
+# Adım 3: 'npm run build' komutunu çalıştırır.
+# Bu, React projesini derleyerek üretim dosyalarını oluşturur.
+- script: npm run build
+  displayName: 'npm run build'
+
+# Adım 4: Derlenmiş dosyaları (build/dist klasörü) pipeline'a yüklenebilir hale getirir.
+# Bu "artefaktlar", daha sonraki adımlarda (örneğin, yayınlama) kullanılabilir.
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'dist' # 'dist' klasörüne build eder. Create-React-App 'build' kullanır.
+    ArtifactName: 'drop' # Artefakt paketinin adı
+    publishLocation: 'Container'
+  displayName: 'Publish Artifacts'
