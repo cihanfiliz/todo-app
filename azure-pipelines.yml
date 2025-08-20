@@ -13,7 +13,7 @@ steps:
 # Adım 1: Node.js'in belirli bir sürümünü kurar.
 - task: NodeTool@0
   inputs:
-    versionSpec: '22.x' # Projenize uygun Node.js sürümünü belirtin
+    versionSpec: '20.x' # Projenize uygun Node.js sürümünü belirtin
   displayName: 'Install Node.js'
 
 # Adım 2: 'npm install' komutunu çalıştırır.
@@ -30,7 +30,7 @@ steps:
 # Bu "artefaktlar", daha sonraki adımlarda (örneğin, yayınlama) kullanılabilir.
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'dist' # 'dist' klasörüne build eder. Create-React-App 'build' kullanır.
+    PathtoPublish: 'build' # Vite 'dist' klasörüne build eder. Create-React-App 'build' kullanır.
     ArtifactName: 'drop' # Artefakt paketinin adı
     publishLocation: 'Container'
   displayName: 'Publish Artifacts'
