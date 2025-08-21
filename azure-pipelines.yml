@@ -1,22 +1,27 @@
+# Trigger on every push to the main branch
 trigger:
 - main
 
+# Define a pipeline-level variable for the build configuration
 variables:
   buildConfiguration: 'Release'
 
+# A pipeline is composed of one or more stages
 stages:
-# STAGE 1: Build
+# STAGE 1: Build the application
 - stage: Build
   displayName: 'Build Stage'
   jobs:
+  # A stage is composed of one or more jobs
   - job: BuildJob
     displayName: 'Build React App'
+    # Use a self-hosted agent pool instead of a Microsoft-hosted VM
     pool:
-      name: Default # self-hosted agent pool
+      name: Default # Or the name of your self-hosted agent pool
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '20.x'
+        versionSpec: '18.x'
       displayName: 'Install Node.js'
 
     - script: npm install
@@ -27,31 +32,28 @@ stages:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: 'build'
-        ArtifactName: 'build-artifact'
+        PathtoPublish: 'dist'
+        ArtifactName: 'drop'
         publishLocation: 'Container'
       displayName: 'Publish build artifacts'
 
-# STAGE 2: Deploy
+# STAGE 2: Deploy the application
 - stage: Deploy
   displayName: 'Deploy Stage'
+  # This stage will only run if the 'Build' stage succeeds
   dependsOn: Build
   condition: succeeded()
   jobs:
   - job: DeployJob
     displayName: 'Deploy to Azure Static Web Apps'
+    # The deployment job should also run on your self-hosted agent
     pool:
-      name: Default # self-hosted agent pool
+      name: Default # Or the name of your self-hosted agent pool
     steps:
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'build-artifact'
-        downloadPath: '$(System.DefaultWorkingDirectory)'
-
+    # This is the task that handles the deployment
     - task: AzureStaticWebApp@0
       inputs:
-        app_location: '$(System.DefaultWorkingDirectory)/build-artifact'
-        skip_app_build: true
+        # The location of the build output (our artifact)
+        app_location: '$(Pipeline.Workspace)/drop'
+        # The deployment token we saved as a secret variable
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
