@@ -54,6 +54,7 @@ stages:
     - task: AzureStaticWebApp@0
       inputs:
         # The location of the build output (our artifact)
-        app_location: 'build'
+        app_location: '/'
+        output_location: 'build'
         # The deployment token we saved as a secret variable
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
