@@ -1,41 +1,60 @@
-# Bu pipeline'ın hangi olayda tetikleneceğini belirtir.
-# 'main' branch'ine yapılan her push'ta çalışacaktır.
+# Trigger on every push to the main branch
 trigger:
 - main
 
-# Pipeline'ın çalışacağı sanal makineyi belirtir.
-# 'ubuntu-latest', en güncel Ubuntu sürümünü kullanır.
-# ESKİ HALİ:
-# pool:
-#  vmImage: 'ubuntu-latest'
+# Define a pipeline-level variable for the build configuration
+variables:
+  buildConfiguration: 'Release'
 
-# YENİ HALİ:
-pool:
-  name: Default # self-hosted agent pool
+# A pipeline is composed of one or more stages
+stages:
+# STAGE 1: Build the application
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  # A stage is composed of one or more jobs
+  - job: BuildJob
+    displayName: 'Build React Todo App'
+    pool:
+      # vmImage: 'ubuntu-latest'
+      name: Default # self-hosted agent pool
 
-# Pipeline'ın adımlarını (steps) tanımlar.
-steps:
-# Adım 1: Node.js'in belirli bir sürümünü kurar.
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x' # Projenize uygun Node.js sürümünü belirtin
-  displayName: 'Install Node.js'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node.js'
 
-# Adım 2: 'npm install' komutunu çalıştırır.
-# Bu, package.json'daki tüm bağımlılıkları indirir.
-- script: npm install
-  displayName: 'npm install'
+    - script: npm install
+      displayName: 'Install dependencies'
 
-# Adım 3: 'npm run build' komutunu çalıştırır.
-# Bu, React projesini derleyerek üretim dosyalarını oluşturur.
-- script: npm run build
-  displayName: 'npm run build'
+    - script: npm run build
+      displayName: 'Build project'
 
-# Adım 4: Derlenmiş dosyaları (build/dist klasörü) pipeline'a yüklenebilir hale getirir.
-# Bu "artefaktlar", daha sonraki adımlarda (örneğin, yayınlama) kullanılabilir.
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: 'build' # Vite 'dist' klasörüne build eder. Create-React-App 'build' kullanır.
-    ArtifactName: 'drop' # Artefakt paketinin adı
-    publishLocation: 'Container'
-  displayName: 'Publish Artifacts'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'dist'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+      displayName: 'Publish build artifacts'
+
+# STAGE 2: Deploy the application
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  # This stage will only run if the 'Build' stage succeeds
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy to Azure Static Web Apps'
+    pool:
+      # vmImage: 'ubuntu-latest'
+      name: Default # self-hosted agent pool
+    steps:
+    # This is the task that handles the deployment
+    - task: AzureStaticWebApp@0
+      inputs:
+        # The location of the build output (our artifact)
+        app_location: '$(Pipeline.Workspace)/drop'
+        # The deployment token we saved as a secret variable
+        azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
