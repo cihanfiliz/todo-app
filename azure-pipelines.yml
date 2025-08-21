@@ -54,7 +54,7 @@ stages:
     - task: AzureStaticWebApp@0
       inputs:
         # The location of the build output (our artifact)
-        app_location: '$(Pipeline.Workspace)/build-artifact/build'
+        app_location: '$(Build.SourcesDirectory)/build'
         # We built the app in the previous stage, so we skip the build step here.
         skip_app_build: true
         # The deployment token we saved as a secret variable
