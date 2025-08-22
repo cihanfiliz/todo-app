@@ -52,7 +52,7 @@ stages:
     # 2. Deploy
     - task: AzureStaticWebApp@0
       inputs:
-        app_location: '$(Pipeline.Workspace)/build-artifact'  # index.html burada
+        app_location: 'build-artifact'  # index.html burada
         output_location: '.'        # build klasörünün içinde index.html var
         skip_app_build: true
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
