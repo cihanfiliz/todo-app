@@ -54,7 +54,8 @@ stages:
     - task: AzureStaticWebApp@0
       inputs:
         # The location of the build output (our artifact)
-        app_location: '$(Build.SourcesDirectory)/s'
+        app_location: '/'                # kaynak kodun kök dizini
+        output_location: 'build'         # CRA için build çıktısı
         # We built the app in the previous stage, so we skip the build step here.
         skip_app_build: true
         # The deployment token we saved as a secret variable
