@@ -28,7 +28,7 @@ stages:
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: 'build'              # CRA için build çıktısı
+        targetPath: 'build/'              # CRA için build çıktısı
         artifact: 'build-artifact'       # artifact ismi
       displayName: 'Publish pipeline artifact'
 
