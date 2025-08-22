@@ -2,21 +2,18 @@
 trigger:
 - main
 
-# Define a pipeline-level variable for the build configuration
 variables:
   buildConfiguration: 'Release'
 
-# A pipeline is composed of one or more stages
 stages:
-# STAGE 1: Build the application
+# STAGE 1: Build
 - stage: Build
   displayName: 'Build Stage'
   jobs:
-  # A stage is composed of one or more jobs
   - job: BuildJob
     displayName: 'Build React App'
     pool:
-      name: Default # Or the name of your self-hosted agent pool
+      name: Default   # kendi self-hosted pool'un
     steps:
     - task: NodeTool@0
       inputs:
@@ -29,15 +26,13 @@ stages:
     - script: npm run build
       displayName: 'Build project'
 
-    - task: PublishBuildArtifacts@1
+    - task: PublishPipelineArtifact@1
       inputs:
-        # For Create-React-App, the output is 'build'. For Vite, it's 'dist'.
-        PathtoPublish: 'build' 
-        ArtifactName: 'build-artifact'
-        publishLocation: 'Container'
-      displayName: 'Publish build artifacts'
+        targetPath: 'build'              # CRA için build çıktısı
+        artifact: 'build-artifact'       # artifact ismi
+      displayName: 'Publish pipeline artifact'
 
-# STAGE 2: Deploy the application
+# STAGE 2: Deploy
 - stage: Deploy
   displayName: 'Deploy Stage'
   dependsOn: Build
@@ -46,18 +41,16 @@ stages:
   - job: DeployJob
     displayName: 'Deploy to Azure Static Web Apps'
     pool:
-      name: Default
+      name: Default   # kendi self-hosted pool'un
     steps:
-    # 1. Build aşamasında yayınlanan artifact’i indir
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifactName: 'build-artifact'
-        targetPath: '$(Pipeline.Workspace)/build-artifact'
+        artifact: 'build-artifact'
+        path: '$(Pipeline.Workspace)/build-artifact'
 
-    # 2. Azure Static Web App deploy et
     - task: AzureStaticWebApp@0
       inputs:
-        app_location: '$(Pipeline.Workspace)/build-artifact'   # artifact'in yolu
-        output_location: '.'                                  # çünkü içinde zaten build var
+        app_location: '$(Pipeline.Workspace)/build-artifact'
+        output_location: '.'        # çünkü build klasörünün içinde index.html var
         skip_app_build: true
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
