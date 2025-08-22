@@ -40,23 +40,24 @@ stages:
 # STAGE 2: Deploy the application
 - stage: Deploy
   displayName: 'Deploy Stage'
-  # This stage will only run if the 'Build' stage succeeds
   dependsOn: Build
   condition: succeeded()
   jobs:
   - job: DeployJob
     displayName: 'Deploy to Azure Static Web Apps'
     pool:
-      name: Default # Or the name of your self-hosted agent pool
+      name: Default
     steps:
-    # The artifact from the Build stage is automatically downloaded.
-    # We can directly reference its location using the $(Pipeline.Workspace) variable.
+    # 1. Build aşamasında yayınlanan artifact’i indir
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: 'build-artifact'
+        targetPath: '$(Pipeline.Workspace)/build-artifact'
+
+    # 2. Azure Static Web App deploy et
     - task: AzureStaticWebApp@0
       inputs:
-        # The location of the build output (our artifact)
-        app_location: '$(Pipeline.Workspace)/build-artifact'  # kaynak kodun kök dizini
-        output_location: 'build'  # CRA için build çıktısı
-        # We built the app in the previous stage, so we skip the build step here.
+        app_location: '$(Pipeline.Workspace)/build-artifact'   # artifact'in yolu
+        output_location: '.'                                  # çünkü içinde zaten build var
         skip_app_build: true
-        # The deployment token we saved as a secret variable
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
