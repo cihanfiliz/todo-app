@@ -28,8 +28,8 @@ stages:
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: 'build/'              # CRA için build çıktısı
-        artifact: 'build-artifact'       # artifact ismi
+        targetPath: 'build'              # CRA build çıktısı
+        artifact: 'build-artifact'
       displayName: 'Publish pipeline artifact'
 
 # STAGE 2: Deploy
@@ -43,20 +43,20 @@ stages:
     pool:
       name: Default   # kendi self-hosted pool'un
     steps:
-    # 1. Pipeline artifact'i indir
+    # 1. Pipeline artifact’i indir
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: 'build-artifact'
         path: '$(Pipeline.Workspace)/build-artifact'
 
-    # 2. AzureStaticWebApp Docker image'i pull et (timeout önlemi)
+    # 2. (Opsiyonel) Docker image’i önceden pull et
     - script: docker pull mcr.microsoft.com/appsvc/staticappsclient:stable
       displayName: 'Pull Azure Static Web Apps client image'
 
     # 3. Deploy
     - task: AzureStaticWebApp@0
       inputs:
-        app_location: '$(Pipeline.Workspace)/build-artifact'
+        app_location: '$(Pipeline.Workspace)/build-artifact'  # index.html burada
         output_location: '.'        # build klasörünün içinde index.html var
         skip_app_build: true
         azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
