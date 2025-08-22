@@ -49,11 +49,7 @@ stages:
         artifact: 'build-artifact'
         path: '$(Pipeline.Workspace)/build-artifact'
 
-    # 2. (Opsiyonel) Docker image’i önceden pull et
-    - script: docker pull mcr.microsoft.com/appsvc/staticappsclient:stable
-      displayName: 'Pull Azure Static Web Apps client image'
-
-    # 3. Deploy
+    # 2. Deploy
     - task: AzureStaticWebApp@0
       inputs:
         app_location: '$(Pipeline.Workspace)/build-artifact'  # index.html burada
